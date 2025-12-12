@@ -1,0 +1,29 @@
+{
+  "layout": {
+    "defaultLeftPanelWidth": 260,
+    "defaultRightPanelWidth": 320,
+    "minLeftPanelWidth": 200,
+    "minRightPanelWidth": 280
+  },
+  "themes": {
+    "developer": {
+      "name": "Developer",
+      "primaryColor": "navy",
+      "accentColor": "cyan",
+      "icon": "code"
+    },
+    "researcher": {
+      "name": "Researcher",
+      "primaryColor": "slate",
+      "accentColor": "emerald",
+      "icon": "book-open"
+    },
+    "business": {
+      "name": "Business",
+      "primaryColor": "blue",
+      "accentColor": "orange",
+      "icon": "briefcase"
+    }
+  },
+  "defaultPersona": "developer"
+}
