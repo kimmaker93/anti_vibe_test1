@@ -115,15 +115,15 @@ export function Zone2Workspace({ className }: Zone2Props) {
                     <div
                         key={msg.id}
                         className={cn(
-                            "flex w-full animate-in fade-in slide-in-from-bottom-2",
+                            "flex w-full animate-in fade-in slide-in-from-bottom-2 group relative", // Added group and relative
                             msg.role === 'user' ? "justify-end" : "justify-start"
                         )}
                     >
                         <div className={cn(
-                            "max-w-[85%] rounded-2xl px-5 py-3 text-sm leading-relaxed shadow-sm",
+                            "max-w-[85%] rounded-2xl px-5 py-3 text-sm leading-relaxed shadow-sm relative",
                             msg.role === 'user'
                                 ? "bg-slate-900 text-white rounded-tr-none"
-                                : "bg-slate-100 text-slate-800 rounded-tl-none"
+                                : "bg-slate-100 text-slate-800 rounded-tl-none group-hover:ring-1 group-hover:ring-indigo-200 transition-all"
                         )}>
                             {/* Render Code Blocks simply if any (naive check) */}
                             {msg.text.split("```").map((part, i) => (
@@ -135,6 +135,21 @@ export function Zone2Workspace({ className }: Zone2Props) {
                                     <p key={i} className="whitespace-pre-wrap">{part}</p>
                                 )
                             ))}
+
+                            {/* Add to Memory Button (Only for AI) */}
+                            {msg.role === 'ai' && (
+                                <button
+                                    onClick={() => {
+                                        // Mock Keyword Extraction
+                                        const keywords = ["핵심", "요약"]; // Mocked for now as per request "Keyword 2 items"
+                                        useGlassStore.getState().createMemory(msg.text, [persona, ...keywords]);
+                                    }}
+                                    className="absolute -bottom-3 left-0 bg-white border border-indigo-100 shadow-sm rounded-full px-2 py-0.5 text-[10px] font-medium text-indigo-600 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 hover:bg-indigo-50 flex items-center gap-1"
+                                >
+                                    <PlusCircle className="w-3 h-3" />
+                                    메모리 추가
+                                </button>
+                            )}
                         </div >
                     </div >
                 ))}

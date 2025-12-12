@@ -22,73 +22,19 @@ export interface Memory {
     id: string;
     key: string;
     value: string;
+    tags?: string[]; // New: For Persona and Keywords
 }
 
-export interface PlanStep {
-    id: string;
-    label: string;
-    status: 'pending' | 'in-progress' | 'completed';
-    required?: boolean;
-}
-
-export interface Plan {
-    title: string;
-    steps: PlanStep[];
-}
-
-interface Scenario {
-    id: string;
-    title: string;
-    persona: PersonaType;
-    description: string;
-    initialMessage: string;
-    userMessage?: string;
-    plan?: Plan;
-    aiResponse?: {
-        text: string;
-        thoughts: string[];
-        confidence: "high" | "medium" | "low";
-        confidenceReason?: string;
-        toolUsage: string[];
-        citation?: { id: string; label: string };
-        personaswitch?: { from: PersonaType; to: PersonaType };
-    };
-    memoryContext?: Memory[];
-}
+// ... existing PlanStep/Plan properties ...
 
 interface GlassStore {
-    // Scenario / Workspace State
-    currentScenarioId: string | null;
-
-    // Workspace (Folder) State
-    folders: Folder[];
-    unassignedScenarioIds: string[]; // Scenarios not in any folder
-    isRightPanelCollapsed: boolean;
-    scenarioTitles?: Record<string, string>; // Optional to keep backward compat if needed, but we'll init it
-
-    // Global State
-    persona: PersonaType;
-    memories: Memory[];
-
-    // Current Conversation State
-    conversation: Message[];
-    isThinking: boolean;
-    thoughts: string[];
-    plan: Plan | null;
-    showConfidence: boolean;
-
-    // Actions
-    loadScenario: (id: string) => void;
-    setPersona: (p: PersonaType) => void;
-
-    // Plan Actions
-    updatePlan: (steps: PlanStep[]) => void;
-
+    // ...
     // Memory Actions
+    createMemory: (value: string, tags?: string[]) => void;
     updateMemory: (id: string, value: string) => void;
     deleteMemory: (id: string) => void;
 
-    // Workspace Actions
+    // ...
     createFolder: (name: string) => void;
     updateFolder: (id: string, name: string) => void;
     deleteFolder: (id: string) => void;
@@ -177,6 +123,18 @@ export const useGlassStore = create<GlassStore>((set, get) => ({
 
     updatePlan: (steps) => set(state => ({
         plan: state.plan ? { ...state.plan, steps } : null
+    })),
+
+    createMemory: (value, tags = []) => set(state => ({
+        memories: [
+            ...state.memories,
+            {
+                id: `mem-${Date.now()}`,
+                key: 'New Memory', // Default key
+                value,
+                tags
+            }
+        ]
     })),
 
     updateMemory: (id, value) => set(state => ({

@@ -8,6 +8,7 @@ interface MemoryItem {
     id: string;
     key: string;
     value: string;
+    tags?: string[];
 }
 
 interface MemoryCardProps {
@@ -64,13 +65,26 @@ export function MemoryCard({ item, onUpdate, onDelete, isHighlighted }: MemoryCa
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
                     className="w-full text-sm p-1.5 border border-indigo-200 rounded focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 outline-none bg-slate-50 text-slate-800"
-                    rows={2}
+                    rows={4}
                     autoFocus
                 />
             ) : (
-                <p className="text-sm text-slate-800 leading-relaxed">
-                    {item.value}
-                </p>
+                <div className="space-y-2">
+                    <p className="text-sm text-slate-800 leading-relaxed line-clamp-3">
+                        {item.value}
+                    </p>
+
+                    {/* Tags Section */}
+                    {item.tags && item.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 pt-1 mt-1 border-t border-slate-100">
+                            {item.tags.map((tag, i) => (
+                                <span key={i} className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-500">
+                                    #{tag}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </div>
             )}
 
             {/* Optimization Indicator (Mocking Vector embedding update) */}
