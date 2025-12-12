@@ -1,9 +1,9 @@
 "use client";
 
-import { User, BookOpen, Briefcase } from "lucide-react";
+import { User, BookOpen, Briefcase, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type PersonaType = "developer" | "researcher" | "business";
+export type PersonaType = "developer" | "researcher" | "business" | "universal";
 
 interface PersonaChipProps {
     persona: PersonaType;
@@ -12,6 +12,11 @@ interface PersonaChipProps {
 
 export function PersonaChip({ persona, onChange }: PersonaChipProps) {
     const config = {
+        universal: {
+            icon: Bot,
+            label: "범용 에이전트",
+            color: "bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-200"
+        },
         developer: {
             icon: User,
             label: "시니어 개발자",
@@ -40,7 +45,7 @@ export function PersonaChip({ persona, onChange }: PersonaChipProps) {
                 )}
                 onClick={() => {
                     // Cycle through personas for demo purposes if no specific change handler
-                    const types: PersonaType[] = ["developer", "researcher", "business"];
+                    const types: PersonaType[] = ["universal", "developer", "researcher", "business"];
                     const next = types[(types.indexOf(persona) + 1) % types.length];
                     onChange?.(next);
                 }}

@@ -65,6 +65,9 @@ export function Zone2Workspace({ className }: Zone2Props) {
     const [inputValue, setInputValue] = useState("");
     const [showToolSelector, setShowToolSelector] = useState(false);
 
+    // Destructure sendMessage
+    const { sendMessage } = useGlassStore();
+
     // Get Title Logic
     const currentScenario = scenarios.find(s => s.id === currentScenarioId);
     const displayTitle = currentScenarioId
@@ -80,6 +83,12 @@ export function Zone2Workspace({ className }: Zone2Props) {
 
     const handleToolClick = () => {
         setShowToolSelector(!showToolSelector);
+    };
+
+    const handleSend = () => {
+        if (!inputValue.trim() || isThinking) return;
+        sendMessage(inputValue);
+        setInputValue("");
     };
 
     return (
@@ -111,48 +120,67 @@ export function Zone2Workspace({ className }: Zone2Props) {
                     </div>
                 )}
 
-                {conversation.map((msg) => (
-                    <div
-                        key={msg.id}
-                        className={cn(
-                            "flex w-full animate-in fade-in slide-in-from-bottom-2 group relative", // Added group and relative
-                            msg.role === 'user' ? "justify-end" : "justify-start"
-                        )}
-                    >
-                        <div className={cn(
-                            "max-w-[85%] rounded-2xl px-5 py-3 text-sm leading-relaxed shadow-sm relative",
-                            msg.role === 'user'
-                                ? "bg-slate-900 text-white rounded-tr-none"
-                                : "bg-slate-100 text-slate-800 rounded-tl-none group-hover:ring-1 group-hover:ring-indigo-200 transition-all"
-                        )}>
-                            {/* Render Code Blocks simply if any (naive check) */}
-                            {msg.text.split("```").map((part, i) => (
-                                i % 2 === 1 ? (
-                                    <pre key={i} className="bg-slate-800 text-slate-200 p-3 rounded-md my-2 overflow-x-auto font-mono text-xs">
-                                        <code>{part}</code>
-                                    </pre>
-                                ) : (
-                                    <p key={i} className="whitespace-pre-wrap">{part}</p>
-                                )
-                            ))}
+                {conversation.map((msg) => {
+                    // Define Bubble Colors per persona
+                    const bubbleColors = {
+                        universal: "bg-slate-100 text-slate-800 border-slate-200",
+                        developer: "bg-indigo-100 text-slate-800 border-indigo-200",
+                        researcher: "bg-emerald-100 text-slate-800 border-emerald-200",
+                        business: "bg-orange-100 text-slate-800 border-orange-200"
+                    };
 
-                            {/* Add to Memory Button (Only for AI) */}
-                            {msg.role === 'ai' && (
-                                <button
-                                    onClick={() => {
-                                        // Mock Keyword Extraction
-                                        const keywords = ["핵심", "요약"]; // Mocked for now as per request "Keyword 2 items"
-                                        useGlassStore.getState().createMemory(msg.text, [persona, ...keywords]);
-                                    }}
-                                    className="absolute -bottom-3 left-0 bg-white border border-indigo-100 shadow-sm rounded-full px-2 py-0.5 text-[10px] font-medium text-indigo-600 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 hover:bg-indigo-50 flex items-center gap-1"
-                                >
-                                    <PlusCircle className="w-3 h-3" />
-                                    메모리 추가
-                                </button>
+                    // Get color class if AI, else default behavior
+                    const aiBubbleClass = msg.role === 'ai'
+                        ? (bubbleColors[msg.persona as keyof typeof bubbleColors] || bubbleColors.universal)
+                        : "bg-slate-900 text-white rounded-tr-none";
+
+                    return (
+                        <div
+                            key={msg.id}
+                            className={cn(
+                                "flex w-full animate-in fade-in slide-in-from-bottom-2 group relative",
+                                msg.role === 'user' ? "justify-end" : "justify-start"
                             )}
+                        >
+                            <div className={cn(
+                                "max-w-[85%] rounded-2xl px-5 py-3 text-sm leading-relaxed shadow-sm relative border",
+                                msg.role === 'user'
+                                    ? "bg-slate-900 text-white rounded-tr-none border-transparent"
+                                    : cn(
+                                        "rounded-tl-none group-hover:ring-1 transition-all",
+                                        aiBubbleClass,
+                                        msg.role === 'ai' ? "group-hover:ring-current/20" : ""
+                                    )
+                            )}>
+                                {/* Render Code Blocks simply if any (naive check) */}
+                                {msg.text.split("```").map((part, i) => (
+                                    i % 2 === 1 ? (
+                                        <pre key={i} className="bg-slate-800 text-slate-200 p-3 rounded-md my-2 overflow-x-auto font-mono text-xs">
+                                            <code>{part}</code>
+                                        </pre>
+                                    ) : (
+                                        <p key={i} className="whitespace-pre-wrap">{part}</p>
+                                    )
+                                ))}
+
+                                {/* Add to Memory Button (Only for AI) */}
+                                {msg.role === 'ai' && (
+                                    <button
+                                        onClick={() => {
+                                            // Mock Keyword Extraction
+                                            const keywords = ["핵심", "요약"]; // Mocked for now as per request "Keyword 2 items"
+                                            useGlassStore.getState().createMemory(msg.text, [persona, ...keywords]);
+                                        }}
+                                        className="absolute -bottom-3 left-0 bg-white border border-indigo-100 shadow-sm rounded-full px-2 py-0.5 text-[10px] font-medium text-indigo-600 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 hover:bg-indigo-50 flex items-center gap-1"
+                                    >
+                                        <PlusCircle className="w-3 h-3" />
+                                        메모리 추가
+                                    </button>
+                                )}
+                            </div >
                         </div >
-                    </div >
-                ))}
+                    );
+                })}
 
                 {/* Thought Process (Only show if latest msg is user or we are thinking/responding) */}
                 {
@@ -194,8 +222,7 @@ export function Zone2Workspace({ className }: Zone2Props) {
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
                                     e.preventDefault();
-                                    // Submit logic TBD
-                                    setInputValue("");
+                                    handleSend();
                                 }
                             }}
                         />
@@ -227,6 +254,7 @@ export function Zone2Workspace({ className }: Zone2Props) {
 
                             {/* Send Button */}
                             <button
+                                onClick={handleSend}
                                 className={cn(
                                     "p-1.5 rounded-lg transition-all flex items-center justify-center",
                                     inputValue.trim()
